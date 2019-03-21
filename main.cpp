@@ -9,11 +9,13 @@ using namespace std;
 int boardSize;
 // Used to calculate remaining mines
 int flagCount;
+//Max size for board enterable by the user
+const int maxSize = 20;
 // Constant used for header spacing, changes how many possible digits can be
 // added without spacing issues
 const int spacing = 3;
 // Set to true to enable cheat/debug mode, prints proximities
-bool cheatTest = true;
+bool cheatTest = false;
 // Number used for mine generation, chance of mine being added is 1 in
 // (mineChance + 1)
 const int mineChance = 5;
@@ -88,8 +90,22 @@ int main() {
   cout << "Welcome to Minesweeper!";
   // Enters main game loop
   while (true) {
-    cout << "\nEnter board size (5 or 10 recommended): ";
-    cin >> boardSize;
+    string userBoardSize;
+    cout << "\nEnter board size 1-20 (5 or 10 recommended): ";
+    cin >> userBoardSize;
+    //Enables applebees cheat, shows prompt again
+    if (userBoardSize == "applebees") {
+      cheatTest = true;
+      cout << "\nCongratulations, cheat activated.";
+      cout << "\nEnter size: ";
+      cin >> userBoardSize;
+    }
+    boardSize = stoi(userBoardSize,nullptr,10);
+    //Ensures valid board size is entered
+    while (boardSize <= 0 || boardSize > maxSize) {
+      cout << "\nInvalid size. Reenter: ";
+      cin >> boardSize;
+    }
     // Sets both arrays for all 3 boards to given boardSize + 2, to create an
     // outer buffer area
     playBoard.resize(boardSize + 2, vector<int>(boardSize + 2));
@@ -175,14 +191,30 @@ int main() {
       bool lose = false;
       cout << "Enter column: ";
       cin >> column;
+      //Ensures valid column entry
+      while (column <0 || column > boardSize -1) {
+        cout << "\nInvalid. Reenter: ";
+        cin >> column;
+      }
       cout << "Enter row: ";
       cin >> row;
+      //Ensures valid row entry
+      while (row < 0 || row > boardSize -1) {
+        cout << "\nInvalid. Reenter: ";
+        cin >> row;
+      }
       cout << "(un)Flag or dig? f/d: ";
       char flag;
       cin >> flag;
+      flag = tolower(flag);
+      //Ensures valid response to f/d prompt
+      while (flag != 'f' && flag != 'd') {
+        cout << "\nInvalid. Reener: ";
+        cin >> flag;
+      } 
       if (tolower(flag) == 'd') {
         //Ensures that dug block hasn't been flagged to avoid accidental dig
-        if (playBoard[row + 1][column + 1] != 'F') {
+        if (blankBoard[row + 1][column + 1] != "F") {
           //Lose if dug block was mine
           if (playBoard[row + 1][column + 1] == 9) {
             blankBoard[row + 1][column + 1] = "*";
@@ -255,6 +287,12 @@ int main() {
       cout << "\nFlags left: " << numMines - flagCount << "\n";
       printBoard();
     }
+    //Ensures memory occupied by vectors is freed, to avoid crashes on further runs
+    rows.clear();
+    columns.clear();
+    mineBoard.clear();
+    playBoard.clear();
+    blankBoard.clear();
     char cont;
     cout << "\n Go again? y/n: ";
     cin >> cont;
